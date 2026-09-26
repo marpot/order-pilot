@@ -1,0 +1,5 @@
+environment     = "staging"
+region          = "provider-region"
+image_registry  = "ghcr.io/example-company"
+domain_name     = "orders.example.com"
+enable_langflow = false

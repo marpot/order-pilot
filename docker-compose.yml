@@ -1,0 +1,105 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-orderpilot}
+      POSTGRES_USER: ${POSTGRES_USER:-orderpilot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orderpilot}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://orderpilot:orderpilot@postgres:5432/orderpilot}
+      CORS_ORIGINS: http://localhost:5173
+      SEED_DEMO_DATA: "true"
+      MAX_UPLOAD_SIZE_BYTES: ${MAX_UPLOAD_SIZE_BYTES:-5242880}
+      MAX_SPREADSHEET_ROWS: ${MAX_SPREADSHEET_ROWS:-2000}
+      MAX_PDF_PAGES: ${MAX_PDF_PAGES:-50}
+      LANGFLOW_ENABLED: ${LANGFLOW_ENABLED:-false}
+      LANGFLOW_URL: ${LANGFLOW_URL:-http://langflow:7860}
+      LANGFLOW_FLOW_ID: ${LANGFLOW_FLOW_ID:-}
+      LANGFLOW_API_KEY: ${LANGFLOW_API_KEY:-}
+      LANGFLOW_TIMEOUT_SECONDS: ${LANGFLOW_TIMEOUT_SECONDS:-15}
+      AI_CONFIDENCE_THRESHOLD: ${AI_CONFIDENCE_THRESHOLD:-0.85}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  frontend:
+    build: ./frontend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  langflow:
+    image: ${LANGFLOW_IMAGE:-langflowai/langflow:1.11.0}
+    profiles: ["ai"]
+    environment:
+      LANGFLOW_AUTO_LOGIN: "true"
+      LANGFLOW_CONFIG_DIR: /app/langflow
+    volumes:
+      - langflow_data:/app/langflow
+      - ./langflow/knowledge:/app/orderpilot-knowledge:ro
+    ports:
+      - "7860:7860"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:7860/health')"]
+      interval: 15s
+      timeout: 5s
+      start_period: 45s
+      retries: 20
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    profiles: ["observability"]
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    profiles: ["observability"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+  langflow_data:
+  prometheus_data:
+  grafana_data:

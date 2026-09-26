@@ -1,0 +1,15 @@
+{
+  "title": "OrderPilot overview",
+  "uid": "orderpilot-overview",
+  "schemaVersion": 39,
+  "refresh": "15s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    { "id": 1, "type": "stat", "title": "HTTP requests", "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 }, "targets": [{ "expr": "sum(increase(orderpilot_http_requests_total[1h]))", "refId": "A" }] },
+    { "id": 2, "type": "stat", "title": "Failed requests", "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 }, "targets": [{ "expr": "sum(increase(orderpilot_http_requests_total{status=~\"5..\"}[1h]))", "refId": "A" }] },
+    { "id": 3, "type": "stat", "title": "Successful imports", "gridPos": { "x": 12, "y": 0, "w": 6, "h": 5 }, "targets": [{ "expr": "sum(increase(orderpilot_imports_total{result=\"success\"}[1h]))", "refId": "A" }] },
+    { "id": 4, "type": "stat", "title": "AI failures", "gridPos": { "x": 18, "y": 0, "w": 6, "h": 5 }, "targets": [{ "expr": "sum(increase(orderpilot_ai_requests_total{result=\"failure\"}[1h]))", "refId": "A" }] },
+    { "id": 5, "type": "timeseries", "title": "Request latency p95", "gridPos": { "x": 0, "y": 5, "w": 12, "h": 8 }, "targets": [{ "expr": "histogram_quantile(0.95, sum by (le, path) (rate(orderpilot_http_request_duration_seconds_bucket[5m])))", "legendFormat": "{{path}}", "refId": "A" }] },
+    { "id": 6, "type": "timeseries", "title": "Imports by source", "gridPos": { "x": 12, "y": 5, "w": 12, "h": 8 }, "targets": [{ "expr": "sum by (source, result) (rate(orderpilot_imports_total[5m]))", "legendFormat": "{{source}} / {{result}}", "refId": "A" }] }
+  ]
+}

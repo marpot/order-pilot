@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orderpilot-config
+  namespace: orderpilot
+data:
+  CORS_ORIGINS: "http://localhost:5173"
+  SEED_DEMO_DATA: "false"
+  MAX_UPLOAD_SIZE_BYTES: "5242880"
+  MAX_SPREADSHEET_ROWS: "2000"
+  MAX_PDF_PAGES: "50"
+  LANGFLOW_ENABLED: "false"
+  LANGFLOW_URL: "http://orderpilot-langflow:7860"
+  LANGFLOW_TIMEOUT_SECONDS: "15"
+  AI_CONFIDENCE_THRESHOLD: "0.85"
+  VITE_API_URL: ""
+  VITE_PROXY_TARGET: "http://orderpilot-backend:8000"

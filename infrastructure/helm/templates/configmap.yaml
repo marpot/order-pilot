@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "orderpilot.fullname" . }}
+  labels:
+    {{- include "orderpilot.labels" . | nindent 4 }}
+data:
+  CORS_ORIGINS: {{ .Values.config.corsOrigins | quote }}
+  SEED_DEMO_DATA: {{ .Values.config.seedDemoData | quote }}
+  MAX_UPLOAD_SIZE_BYTES: {{ .Values.config.maxUploadSizeBytes | quote }}
+  MAX_SPREADSHEET_ROWS: {{ .Values.config.maxSpreadsheetRows | quote }}
+  MAX_PDF_PAGES: {{ .Values.config.maxPdfPages | quote }}
+  AI_CONFIDENCE_THRESHOLD: {{ .Values.config.aiConfidenceThreshold | quote }}
+  LANGFLOW_ENABLED: {{ .Values.langflow.enabled | quote }}
+  LANGFLOW_URL: "http://{{ include "orderpilot.fullname" . }}-langflow:7860"
+  VITE_API_URL: ""
+  VITE_PROXY_TARGET: "http://{{ include "orderpilot.fullname" . }}-backend:8000"

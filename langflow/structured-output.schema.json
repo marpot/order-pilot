@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OrderPilotExtraction",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["customer_name", "customer_email", "customer_tax_id", "delivery_address", "delivery_date", "items", "warnings", "confidence"],
+  "properties": {
+    "customer_name": { "type": ["string", "null"] },
+    "customer_email": { "type": ["string", "null"], "format": "email" },
+    "customer_tax_id": { "type": ["string", "null"] },
+    "delivery_address": { "type": ["string", "null"] },
+    "delivery_date": { "type": ["string", "null"], "format": "date" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sku", "product_name", "quantity", "unit"],
+        "properties": {
+          "sku": { "type": "string", "minLength": 1 },
+          "product_name": { "type": ["string", "null"] },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "unit": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

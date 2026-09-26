@@ -1,0 +1,58 @@
+images:
+  backend:
+    repository: ghcr.io/your-org/orderpilot-backend
+    tag: latest
+  frontend:
+    repository: ghcr.io/your-org/orderpilot-frontend
+    tag: latest
+  postgres:
+    repository: postgres
+    tag: 16-alpine
+  langflow:
+    repository: langflowai/langflow
+    tag: 1.11.0
+
+replicas:
+  backend: 2
+  frontend: 2
+
+service:
+  frontend:
+    type: ClusterIP
+    port: 80
+  backend:
+    port: 8000
+
+existingSecret: orderpilot-secrets
+
+config:
+  corsOrigins: http://localhost:5173
+  seedDemoData: false
+  maxUploadSizeBytes: 5242880
+  maxSpreadsheetRows: 2000
+  maxPdfPages: 50
+  aiConfidenceThreshold: 0.85
+
+langflow:
+  enabled: false
+  flowIdSecretKey: langflow-flow-id
+  apiKeySecretKey: langflow-api-key
+
+postgres:
+  enabled: true
+  persistence:
+    size: 5Gi
+
+resources:
+  backend:
+    requests: { cpu: 100m, memory: 192Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+  frontend:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { cpu: 250m, memory: 192Mi }
+  postgres:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: 500m, memory: 768Mi }
+  langflow:
+    requests: { cpu: 250m, memory: 768Mi }
+    limits: { cpu: "1", memory: 2Gi }
